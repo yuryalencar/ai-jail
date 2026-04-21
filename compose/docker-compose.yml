@@ -1,0 +1,33 @@
+services:
+  jail:
+    image: ai-jail:local
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        USER_UID: ${USER_UID:-1000}
+        USER_GID: ${USER_GID:-1000}
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    hostname: ai-jail
+    environment:
+      TERM: ${TERM:-xterm-256color}
+      COLORTERM: ${COLORTERM:-truecolor}
+      LANG: en_US.UTF-8
+    volumes:
+      - type: bind
+        source: ${AI_JAIL_WORKSPACE:?set AI_JAIL_WORKSPACE to the host path you want mounted at /workspace}
+        target: /workspace
+      - ai-jail-claude:/home/agent/.claude
+      - ai-jail-codex:/home/agent/.codex
+      - ai-jail-gh:/home/agent/.config/gh
+      - ai-jail-pnpm-store:/home/agent/.local/share/pnpm
+      - ai-jail-cache:/home/agent/.cache
+
+volumes:
+  ai-jail-claude:
+  ai-jail-codex:
+  ai-jail-gh:
+  ai-jail-pnpm-store:
+  ai-jail-cache:

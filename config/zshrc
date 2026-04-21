@@ -1,0 +1,30 @@
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export EDITOR=${EDITOR:-vi}
+
+export PNPM_HOME="$HOME/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000
+SAVEHIST=10000
+setopt SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE INC_APPEND_HISTORY
+
+alias ll='ls -lah --color=auto'
+alias la='ls -A --color=auto'
+alias gs='git status'
+alias gd='git diff'
+alias gl='git log --oneline --graph --decorate -n 20'
+
+autoload -Uz compinit && compinit -C
+
+export AI_JAIL=1
+
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+else
+  PROMPT='%F{red}[AI-JAIL]%f %F{cyan}%~%f %# '
+fi
