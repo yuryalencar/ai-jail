@@ -11,13 +11,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PATH=/home/agent/.local/share/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        ca-certificates curl gnupg sudo less git tmux zsh \
+        ca-certificates curl gpg sudo less git tmux zsh \
         build-essential python3-minimal ripgrep fd-find \
         locales openssh-client \
     && sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen && locale-gen \
     && rm -rf /var/lib/apt/lists/*
 
-RUN type -p curl >/dev/null \
+RUN command -v curl >/dev/null \
     && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
         | gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg \
     && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -29,11 +29,29 @@ RUN type -p curl >/dev/null \
 RUN curl -fsSL https://starship.rs/install.sh \
         | sh -s -- --yes --bin-dir /usr/local/bin
 
-RUN if getent group node >/dev/null; then groupmod -n agent node; else groupadd -g "${USER_GID}" agent; fi \
-    && groupmod -g "${USER_GID}" agent \
-    && if id node >/dev/null 2>&1; then usermod -l agent -d /home/agent -m -g agent node; else useradd -m -u "${USER_UID}" -g agent -s /bin/zsh agent; fi \
-    && usermod -u "${USER_UID}" -s /bin/zsh agent \
-    && echo 'agent ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/agent && chmod 0440 /etc/sudoers.d/agent
+RUN set -eu; \
+    existing_group="$(getent group "${USER_GID}" | cut -d: -f1 || true)"; \
+    if [ -n "$existing_group" ]; then \
+        if [ "$existing_group" != "agent" ]; then groupmod -n agent "$existing_group"; fi; \
+    elif getent group node >/dev/null; then \
+        groupmod -n agent -g "${USER_GID}" node; \
+    else \
+        groupadd -g "${USER_GID}" agent; \
+    fi; \
+    existing_user="$(getent passwd "${USER_UID}" | cut -d: -f1 || true)"; \
+    if [ -n "$existing_user" ]; then \
+        if [ "$existing_user" != "agent" ]; then \
+            usermod -l agent -d /home/agent -m -g agent -s /bin/zsh "$existing_user"; \
+        else \
+            usermod -g agent -s /bin/zsh agent; \
+        fi; \
+    elif id node >/dev/null 2>&1; then \
+        usermod -l agent -d /home/agent -m -u "${USER_UID}" -g agent -s /bin/zsh node; \
+    else \
+        useradd -m -u "${USER_UID}" -g agent -s /bin/zsh agent; \
+    fi; \
+    echo 'agent ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/agent; \
+    chmod 0440 /etc/sudoers.d/agent
 
 RUN corepack enable \
     && corepack prepare pnpm@latest --activate \

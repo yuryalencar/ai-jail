@@ -26,7 +26,8 @@ without giving them your whole laptop.
 ## Install
 
 ```sh
-cd /Users/yuryalencar/Documents/ai-projects/ai-jail
+git clone https://github.com/yuryalencar/ai-jail.git
+cd ai-jail
 ./scripts/install.sh
 exec $SHELL -l
 ```
@@ -104,6 +105,8 @@ ai-jail/
 - [docs/usage.md](docs/usage.md) — Using one install across many projects.
 - [docs/configuration.md](docs/configuration.md) — Per-project `CLAUDE.md`
   vs. globally-shared skills.
+- [docs/uid-gid.md](docs/uid-gid.md) — Why the image is built per-machine
+  and how host UID/GID get baked into the `agent` user.
 
 ## Out of scope for v1 (roadmap)
 
@@ -114,20 +117,12 @@ ai-jail/
 
 ## Troubleshooting
 
-**"docker daemon is not reachable"** — Start Docker Desktop, wait for the
-whale icon to go steady, re-run `./scripts/install.sh`.
-
-**"required variable AI_JAIL_WORKSPACE is missing a value" during install
-or `ai-jail build`** — Fixed. Earlier versions shelled the image build
-through `docker compose build`, which interpolates the runtime bind-mount
-variable even at build time. `scripts/build.sh` now uses `docker build`
-directly (building is workspace-agnostic), and `ai-jail build` / `ai-jail
-update` delegate to it. If you still hit this, pull the latest repo and
-re-run `./scripts/install.sh`.
+**"docker daemon is not reachable"** — Start Docker (Docker Desktop on
+macOS) and wait until it reports ready, then re-run `./scripts/install.sh`.
 
 **Files written inside the jail are owned by root on host** — The image was
-built with the wrong UID/GID. Run `ai-jail build` to rebuild with your
-current user.
+built with the wrong UID/GID. Run `ai-jail build` to rebuild against the
+current host user. See [docs/uid-gid.md](docs/uid-gid.md) for why.
 
 **`claude` / `codex` not found inside the jail** — pnpm's global bin dir
 isn't on PATH. Check `echo $PNPM_HOME` — it should be
