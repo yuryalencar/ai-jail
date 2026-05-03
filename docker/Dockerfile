@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates curl gpg sudo less git tmux zsh \
         build-essential python3-minimal ripgrep fd-find \
         locales openssh-client \
+        libsecret-1-0 libsecret-tools gnome-keyring dbus-x11 \
     && sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen && locale-gen \
     && rm -rf /var/lib/apt/lists/*
 
@@ -55,7 +56,12 @@ RUN set -eu; \
 
 RUN corepack enable \
     && corepack prepare pnpm@latest --activate \
-    && mkdir -p /home/agent/.local/share/pnpm /home/agent/.cache /home/agent/.config \
+    && mkdir -p /home/agent/.local/share/pnpm/store \
+                /home/agent/.local/share/keyrings \
+                /home/agent/.cache \
+                /home/agent/.config/gh \
+                /home/agent/.claude \
+                /home/agent/.codex \
     && chown -R agent:agent /home/agent
 
 COPY --chown=agent:agent config/zshrc        /home/agent/.zshrc
@@ -67,7 +73,13 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 USER agent
 WORKDIR /home/agent
-RUN pnpm add -g @anthropic-ai/claude-code @openai/codex
+RUN pnpm add -g @anthropic-ai/claude-code @openai/codex \
+    && root="$(pnpm root -g)" \
+    && for pkg in @anthropic-ai/claude-code @openai/codex; do \
+           if [ -f "$root/$pkg/install.cjs" ]; then \
+               node "$root/$pkg/install.cjs"; \
+           fi; \
+       done
 
 WORKDIR /workspace
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

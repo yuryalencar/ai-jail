@@ -22,12 +22,20 @@ services:
       - ai-jail-claude:/home/agent/.claude
       - ai-jail-codex:/home/agent/.codex
       - ai-jail-gh:/home/agent/.config/gh
-      - ai-jail-pnpm-store:/home/agent/.local/share/pnpm
+      - ai-jail-keyrings:/home/agent/.local/share/keyrings
+      - ai-jail-pnpm-store:/home/agent/.local/share/pnpm/store
       - ai-jail-cache:/home/agent/.cache
 
 volumes:
   ai-jail-claude:
+    name: ai-jail-claude
   ai-jail-codex:
+    name: ai-jail-codex
   ai-jail-gh:
+    name: ai-jail-gh
+  ai-jail-keyrings:
+    name: ai-jail-keyrings
   ai-jail-pnpm-store:
+    name: ai-jail-pnpm-store
   ai-jail-cache:
+    name: ai-jail-cache
