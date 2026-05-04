@@ -1,6 +1,16 @@
 add_newline = false
-format = """[AI-JAIL](bold red) $directory$git_branch$git_status$nodejs$python$cmd_duration
+format = """[AI-JAIL](bold red)$env_var $directory$git_branch$git_status$nodejs$python$cmd_duration$time
 $character"""
+
+[env_var.AI_JAIL_PROJECT]
+default = ""
+format = "[ · $env_value](bold yellow)"
+
+[time]
+disabled = false
+format = "[ $time]($style)"
+style = "dimmed white"
+time_format = "%H:%M"
 
 [character]
 success_symbol = "[❯](bold green)"

@@ -56,15 +56,20 @@ ai-jail() {
     return 1
   fi
   shift 2>/dev/null || true
-  local workspace
+  local workspace project tz
   workspace="$(cd "$target" && pwd)"
+  project="$(basename "$workspace")"
+  tz="${TZ:-}"
+  if [ -z "$tz" ] && [ -L /etc/localtime ]; then
+    tz="$(readlink /etc/localtime | sed -E 's|.*/zoneinfo/||')"
+  fi
 
   if [ "$#" -gt 0 ]; then
-    AI_JAIL_WORKSPACE="$workspace" \
+    AI_JAIL_WORKSPACE="$workspace" AI_JAIL_PROJECT="$project" TZ="$tz" \
     USER_UID="$(id -u)" USER_GID="$(id -g)" \
       docker compose -f "$compose_file" run --rm jail "$@"
   else
-    AI_JAIL_WORKSPACE="$workspace" \
+    AI_JAIL_WORKSPACE="$workspace" AI_JAIL_PROJECT="$project" TZ="$tz" \
     USER_UID="$(id -u)" USER_GID="$(id -g)" \
       docker compose -f "$compose_file" run --rm jail
   fi
