@@ -15,6 +15,37 @@ ai-jail() {
   local compose_file="$AI_JAIL_HOME/compose/docker-compose.yml"
 
   case "${1-}" in
+    -h|--help|help)
+      cat <<'EOF'
+ai-jail — Docker sandbox for agentic coding CLIs (claude, codex, gh copilot).
+
+USAGE
+  ai-jail                      Mount $PWD into the jail, drop into zsh.
+  ai-jail <path>               Mount <path> into the jail.
+  ai-jail <path> <cmd...>      Mount <path>, run <cmd> non-interactively.
+
+SUBCOMMANDS
+  build         (Re)build the image with the current host UID/GID.
+  update        Pull the latest base image and rebuild.
+  init [path]   Drop CLAUDE.md + AGENTS.md templates into <path>
+                (defaults to $PWD).
+  reset-auth    Wipe the claude / codex / gh credential volumes (forces
+                re-login next time).
+  prune         Remove the image and ALL ai-jail named volumes. Destructive.
+  help, -h, --help
+                Show this message.
+
+EXAMPLES
+  ai-jail ~/code/my-project          # interactive zsh in the jail
+  ai-jail ~/code/my-project claude   # run claude non-interactively
+  ai-jail                            # uses $PWD
+  ai-jail build                      # after changing the Dockerfile
+
+DOCS
+  Repo: https://github.com/yuryalencar/ai-jail
+EOF
+      return 0
+      ;;
     build)
       "$AI_JAIL_HOME/scripts/build.sh"
       return $?
@@ -39,11 +70,18 @@ ai-jail() {
       return 0
       ;;
     init)
+      local init_target="${2:-$PWD}"
+      if [ ! -d "$init_target" ]; then
+        echo "ai-jail init: '$init_target' is not a directory" >&2
+        return 1
+      fi
+      init_target="$(cd "$init_target" && pwd)"
       for f in CLAUDE.md AGENTS.md; do
-        if [ -e "$PWD/$f" ]; then
-          echo "skip: $f already exists"
+        if [ -e "$init_target/$f" ]; then
+          echo "skip: $init_target/$f already exists"
         else
-          cp "$AI_JAIL_HOME/templates/$f" "$PWD/$f" && echo "wrote $f"
+          cp "$AI_JAIL_HOME/templates/$f" "$init_target/$f" \
+            && echo "wrote $init_target/$f"
         fi
       done
       return 0
