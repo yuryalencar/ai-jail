@@ -15,6 +15,8 @@ without giving them your whole laptop.
   the host — no `sudo chown` dance.
 - **Three CLIs preinstalled** via `pnpm` + `gh` extension: `claude`, `codex`,
   `gh copilot`.
+- **Go toolchain included** — Go 1.26 is baked in; the module cache and
+  `~/go/bin` binaries persist in a named volume across sessions.
 - **Professional shell** — zsh, starship prompt with an `AI-JAIL` marker,
   tmux, ripgrep, fd, git, gh.
 
@@ -111,7 +113,7 @@ ai-jail/
 ## Out of scope for v1 (roadmap)
 
 - Egress allowlist via an outbound proxy.
-- Python / Go / Rust toolchains (add a `Dockerfile.full` variant).
+- Rust toolchain (add a `Dockerfile.full` variant).
 - VS Code devcontainer wrapper.
 - Seccomp / AppArmor profiles, read-only root FS.
 
@@ -126,7 +128,7 @@ current host user. See [docs/uid-gid.md](docs/uid-gid.md) for why.
 
 **`claude` / `codex` not found inside the jail** — pnpm's global bin dir
 isn't on PATH. Check `echo $PNPM_HOME` — it should be
-`/home/agent/.local/share/pnpm` and on `$PATH`.
+`/home/agent/.local/share/pnpm` and `$PNPM_HOME/bin` should be on `$PATH`.
 
 **Want to wipe and start clean** — `ai-jail prune` removes the image and
 every named volume.

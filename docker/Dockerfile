@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PNPM_HOME=/home/agent/.local/share/pnpm \
-    PATH=/home/agent/.local/share/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    PATH=/home/agent/.local/share/pnpm/bin:/home/agent/.local/share/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates curl gpg sudo less git tmux zsh \
@@ -29,6 +29,12 @@ RUN command -v curl >/dev/null \
 
 RUN curl -fsSL https://starship.rs/install.sh \
         | sh -s -- --yes --bin-dir /usr/local/bin
+
+ARG GO_VERSION=1.26.3
+RUN arch="$(dpkg --print-architecture)" \
+    && curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${arch}.tar.gz" \
+        | tar -C /usr/local -xz
+ENV PATH="/usr/local/go/bin:${PATH}"
 
 RUN set -eu; \
     existing_group="$(getent group "${USER_GID}" | cut -d: -f1 || true)"; \
@@ -56,12 +62,15 @@ RUN set -eu; \
 
 RUN corepack enable \
     && corepack prepare pnpm@latest --activate \
-    && mkdir -p /home/agent/.local/share/pnpm/store \
+    && mkdir -p /home/agent/.local/share/pnpm/bin \
+                /home/agent/.local/share/pnpm/store \
                 /home/agent/.local/share/keyrings \
                 /home/agent/.cache \
                 /home/agent/.config/gh \
                 /home/agent/.claude \
                 /home/agent/.codex \
+                /home/agent/go/pkg/mod \
+                /home/agent/go/bin \
     && chown -R agent:agent /home/agent
 
 COPY --chown=agent:agent config/zshrc        /home/agent/.zshrc
