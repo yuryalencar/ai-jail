@@ -17,8 +17,10 @@ without giving them your whole laptop.
   `gh copilot`.
 - **Go toolchain included** — Go 1.26 is baked in; the module cache and
   `~/go/bin` binaries persist in a named volume across sessions.
-- **Professional shell** — zsh, starship prompt with an `AI-JAIL` marker,
-  tmux, ripgrep, fd, git, gh.
+- **Python available** — Python 3.11 ships with the image for quick
+  scripting (no pip / venv preconfigured — install per-project as needed).
+- **Professional shell** — zsh, starship prompt with project name + git
+  branch + local time, tmux, ripgrep, fd, git, gh.
 
 ## Requirements
 
@@ -49,13 +51,14 @@ ai-jail                             # uses $PWD
 
 Subcommands:
 
-| Command             | What it does                                           |
-|---------------------|--------------------------------------------------------|
-| `ai-jail build`     | Rebuild the image with current host UID/GID.           |
-| `ai-jail update`    | Pull latest base image + rebuild.                      |
-| `ai-jail init`      | Drop `CLAUDE.md` + `AGENTS.md` templates into `$PWD`.  |
-| `ai-jail reset-auth`| Remove the three credential volumes (forces re-login). |
-| `ai-jail prune`     | Remove image + all named volumes. Destructive.         |
+| Command               | What it does                                                |
+|-----------------------|-------------------------------------------------------------|
+| `ai-jail --help`      | Show usage, subcommands, and examples.                      |
+| `ai-jail build`       | Rebuild the image with current host UID/GID.                |
+| `ai-jail update`      | Pull latest base image + refresh `claude` / `codex` to the latest npm `@latest`. |
+| `ai-jail init [path]` | Drop `CLAUDE.md` + `AGENTS.md` templates into `path` (defaults to `$PWD`). |
+| `ai-jail reset-auth`  | Remove the credential volumes (forces re-login).            |
+| `ai-jail prune`       | Remove image + all named volumes. Destructive.              |
 
 ## First-time logins
 
