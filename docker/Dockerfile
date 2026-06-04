@@ -82,13 +82,17 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 USER agent
 WORKDIR /home/agent
-RUN pnpm add -g @anthropic-ai/claude-code @openai/codex \
-    && root="$(pnpm root -g)" \
-    && for pkg in @anthropic-ai/claude-code @openai/codex; do \
-           if [ -f "$root/$pkg/install.cjs" ]; then \
-               node "$root/$pkg/install.cjs"; \
-           fi; \
-       done
+
+# CLI_REFRESH busts Docker's layer cache for the `pnpm add -g` step.
+# `ai-jail build` reuses the cached CLIs (fast rebuild). `ai-jail update`
+# passes a fresh timestamp so claude/codex are re-resolved from npm.
+ARG CLI_REFRESH=cached
+RUN echo "CLI_REFRESH=$CLI_REFRESH" >/dev/null \
+    && pnpm add -g @anthropic-ai/claude-code@latest @openai/codex@latest \
+    && find "$PNPM_HOME" -path "*/node_modules/@anthropic-ai/claude-code/install.cjs" \
+            -exec node {} \; \
+    && find "$PNPM_HOME" -path "*/node_modules/@openai/codex/install.cjs" \
+            -exec node {} \;
 
 WORKDIR /workspace
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

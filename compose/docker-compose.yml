@@ -25,7 +25,6 @@ services:
       - ai-jail-codex:/home/agent/.codex
       - ai-jail-gh:/home/agent/.config/gh
       - ai-jail-keyrings:/home/agent/.local/share/keyrings
-      - ai-jail-pnpm-store:/home/agent/.local/share/pnpm/store
       - ai-jail-go:/home/agent/go
       - ai-jail-cache:/home/agent/.cache
 
@@ -38,8 +37,6 @@ volumes:
     name: ai-jail-gh
   ai-jail-keyrings:
     name: ai-jail-keyrings
-  ai-jail-pnpm-store:
-    name: ai-jail-pnpm-store
   ai-jail-go:
     name: ai-jail-go
   ai-jail-cache:

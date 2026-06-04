@@ -52,7 +52,8 @@ EOF
       ;;
     update)
       docker pull node:22-bookworm-slim || true
-      "$AI_JAIL_HOME/scripts/build.sh" --pull
+      "$AI_JAIL_HOME/scripts/build.sh" --pull \
+        --build-arg "CLI_REFRESH=$(date +%s)"
       return $?
       ;;
     reset-auth)
@@ -66,7 +67,7 @@ EOF
       [[ "$ans" == "y" || "$ans" == "Y" ]] || { echo "aborted"; return 1; }
       docker rmi ai-jail:local 2>/dev/null
       docker volume rm ai-jail-claude ai-jail-codex ai-jail-gh \
-                       ai-jail-pnpm-store ai-jail-go ai-jail-cache 2>/dev/null
+                       ai-jail-keyrings ai-jail-go ai-jail-cache 2>/dev/null
       return 0
       ;;
     init)
