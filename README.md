@@ -60,6 +60,67 @@ Subcommands:
 | `ai-jail reset-auth`  | Remove the credential volumes (forces re-login).            |
 | `ai-jail prune`       | Remove image + all named volumes. Destructive.              |
 
+## Examples
+
+More scenarios — including multi-language projects and a full agent
+session — in [docs/usage.md](docs/usage.md#examples).
+
+### 1. First-time walkthrough
+
+Set up a new project, log in to claude once, then work in it:
+
+```sh
+cd ~/code/my-app
+ai-jail init                       # drop CLAUDE.md + AGENTS.md templates
+ai-jail                            # enter the jail ($PWD mounts at /workspace)
+# inside the jail:
+claude                             # first time: /login (browser flow)
+# … work in claude, then exit when done
+exit
+```
+
+Next time you run `ai-jail ~/code/my-app`, the login is remembered (it
+lives in the `ai-jail-claude` named volume, not on your host filesystem).
+
+### 2. Working on multiple projects in parallel
+
+Each terminal jails into its own folder; the prompt makes it obvious
+which is which.
+
+Terminal A:
+```
+$ ai-jail ~/code/api
+AI-JAIL · api workspace on  main  14:23
+❯
+```
+
+Terminal B:
+```
+$ ai-jail ~/code/landing-page
+AI-JAIL · landing-page workspace on  feat/header  14:24
+❯
+```
+
+Same image, same credentials, different bind-mounted folders. An agent
+in terminal A literally cannot see anything from `landing-page` (and
+vice versa) — each container only has `/workspace` mounted from its
+own project.
+
+### 3. Non-interactive one-shots
+
+For scripts, CI, or quick checks, pass the command after the path:
+
+```sh
+ai-jail ~/code/api claude --print "summarize the last commit"
+ai-jail ~/code/api codex exec "add tests for the new endpoint"
+ai-jail ~/code/api gh copilot suggest "list the 10 largest files"
+ai-jail ~/code/api go test ./...
+```
+
+Each call spins up a fresh container with `--rm`; nothing persists on
+the host except files written under `/workspace` (i.e. your project
+folder).
+
 ## First-time logins
 
 Inside the jail:
@@ -107,7 +168,9 @@ ai-jail/
 
 - [docs/installation.md](docs/installation.md) — What install changes on
   your host, and how to fully uninstall.
-- [docs/usage.md](docs/usage.md) — Using one install across many projects.
+- [docs/usage.md](docs/usage.md) — Using one install across many
+  projects, plus end-to-end examples (walkthroughs, multi-language
+  projects, agent sessions).
 - [docs/configuration.md](docs/configuration.md) — Per-project `CLAUDE.md`
   vs. globally-shared skills.
 - [docs/uid-gid.md](docs/uid-gid.md) — Why the image is built per-machine
